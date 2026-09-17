@@ -1,10 +1,10 @@
-# Copy absolute path
+# Copy path button
 
 Adds a copy button to the note tab header that copies the current file's absolute path in one click. Also registers a command, so you can bind a hotkey to it.
 
 ## Usage
 
-Click the copy icon in the tab header of any note, or run **Copy absolute path of current file** from the command palette (Settings → Hotkeys to bind a key).
+Click the copy icon in the tab header of any note, or run **Copy path of current file** from the command palette (Settings → Hotkeys to bind a key).
 
 ## Settings
 
@@ -21,7 +21,7 @@ Everything else in the template is copied literally, so `<{{path}}>` gives `</Us
 
 Desktop only — absolute paths do not exist on mobile.
 
-Manual install: copy `main.js` and `manifest.json` into `<vault>/.obsidian/plugins/copy-absolute-path/`, then enable the plugin in Settings → Community plugins.
+Manual install: copy `main.js` and `manifest.json` into `<vault>/.obsidian/plugins/copy-path-button/`, then enable the plugin in Settings → Community plugins.
 
 ## License
 

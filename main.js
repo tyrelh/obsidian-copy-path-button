@@ -1,6 +1,6 @@
 const { Plugin, PluginSettingTab, Setting, Notice, FileSystemAdapter } = require("obsidian");
 
-const BTN_CLASS = "copy-absolute-path-action";
+const BTN_CLASS = "copy-path-button-action";
 const DEFAULT_SETTINGS = { template: "{{path}}" };
 
 function render(template, path, basename) {
@@ -9,14 +9,14 @@ function render(template, path, basename) {
 		.replaceAll("{{wikilink}}", "[[" + basename + "]]");
 }
 
-module.exports = class CopyAbsolutePath extends Plugin {
+module.exports = class CopyPathButton extends Plugin {
 	async onload() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.addSettingTab(new CopyAbsolutePathSettingTab(this.app, this));
+		this.addSettingTab(new CopyPathButtonSettingTab(this.app, this));
 
 		this.addCommand({
-			id: "copy-absolute-path",
-			name: "Copy absolute path of current file",
+			id: "copy-path",
+			name: "Copy path of current file",
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
 				if (!file) return false;
@@ -62,7 +62,7 @@ module.exports = class CopyAbsolutePath extends Plugin {
 	}
 };
 
-class CopyAbsolutePathSettingTab extends PluginSettingTab {
+class CopyPathButtonSettingTab extends PluginSettingTab {
 	constructor(app, plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
