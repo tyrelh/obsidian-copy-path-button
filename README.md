@@ -19,7 +19,7 @@ Everything else in the template is copied literally, so `<{{path}}>` gives `</Us
 
 ## Installation
 
-Desktop only — absolute paths do not exist on mobile.
+Desktop only. Absolute paths do not exist on mobile.
 
 Manual install: copy `main.js` and `manifest.json` into `<vault>/.obsidian/plugins/copy-path-button/`, then enable the plugin in Settings → Community plugins.
 
