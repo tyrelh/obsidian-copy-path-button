@@ -1,7 +1,7 @@
 {
 	"id": "copy-path-button",
 	"name": "Copy path button",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.4.0",
 	"description": "One-click button in the note tab header that copies the current file's absolute path.",
 	"author": "tyrelh",
