@@ -1,4 +1,4 @@
-const { Plugin, PluginSettingTab, Setting, Notice, FileSystemAdapter } = require("obsidian");
+const { Plugin, PluginSettingTab, Setting, Notice, FileSystemAdapter, MarkdownView } = require("obsidian");
 
 const BTN_CLASS = "copy-path-button-action";
 const DEFAULT_SETTINGS = { template: "{{path}}" };
@@ -41,6 +41,8 @@ module.exports = class CopyPathButton extends Plugin {
 	addButtons() {
 		for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
 			const view = leaf.view;
+			// Unopened tabs hold a deferred view stub with no addAction; a later layout-change catches them.
+			if (!(view instanceof MarkdownView)) continue;
 			if (view.containerEl.querySelector("." + BTN_CLASS)) continue;
 			const btn = view.addAction("copy", "Copy path", () => {
 				if (view.file) this.copy(view.file);
