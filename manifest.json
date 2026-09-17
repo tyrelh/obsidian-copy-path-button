@@ -1,0 +1,9 @@
+{
+	"id": "copy-absolute-path",
+	"name": "Copy absolute path",
+	"version": "1.0.0",
+	"minAppVersion": "1.4.0",
+	"description": "One-click button in the note tab header that copies the current file's absolute path.",
+	"author": "tyrelh",
+	"isDesktopOnly": true
+}
