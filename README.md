@@ -13,6 +13,7 @@ A single **Copy template** field controls what lands on the clipboard. Tokens:
 | Token | Expands to |
 | --- | --- |
 | `{{path}}` | Absolute path, e.g. `/Users/you/Vault/notes/idea.md` |
+| `{{relative}}` | Path relative to vault root, e.g. `notes/idea.md` |
 | `{{wikilink}}` | `[[idea]]` |
 
 Everything else in the template is copied literally, so `<{{path}}>` gives `</Users/you/Vault/notes/idea.md>` and ``` `{{path}}` ``` wraps the path in backticks. The default is `{{path}}`.
