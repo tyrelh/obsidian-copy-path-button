@@ -1,0 +1,98 @@
+name: Bump version
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: bump-version-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  bump:
+    # Fork PRs get a read-only token and can't be pushed to.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Work out the next version
+        id: version
+        env:
+          MAJOR: ${{ contains(github.event.pull_request.labels.*.name, 'release:major') }}
+          MINOR: ${{ contains(github.event.pull_request.labels.*.name, 'release:minor') }}
+        run: |
+          set -euo pipefail
+
+          # Latest release tag on main, or 0.0.0 for the very first release.
+          last=$(git tag --merged origin/main --list '[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          last=${last:-0.0.0}
+          IFS=. read -r major minor patch <<<"$last"
+
+          if [ "$MAJOR" = true ]; then
+            major=$((major + 1)); minor=0; patch=0; bump=major
+          elif [ "$MINOR" = true ]; then
+            minor=$((minor + 1)); patch=0; bump=minor
+          else
+            patch=$((patch + 1)); bump=patch
+          fi
+
+          next="${major}.${minor}.${patch}"
+          echo "Last release $last, next $next"
+          {
+            echo "last=$last"
+            echo "next=$next"
+            echo "bump=$bump"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Update manifest.json
+        env:
+          NEXT: ${{ steps.version.outputs.next }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+
+          if [ "$(jq -r '.version' manifest.json)" = "$NEXT" ]; then
+            echo "manifest.json already at $NEXT"
+            exit 0
+          fi
+
+          jq --tab --arg v "$NEXT" '.version = $v' manifest.json >manifest.json.tmp
+          mv manifest.json.tmp manifest.json
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "Bump version to $NEXT"
+          git push origin "HEAD:$HEAD_REF"
+
+      - name: Comment on the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          LAST: ${{ steps.version.outputs.last }}
+          NEXT: ${{ steps.version.outputs.next }}
+          BUMP: ${{ steps.version.outputs.bump }}
+        run: |
+          set -euo pipefail
+
+          marker='<!-- bump-version -->'
+          body=$(printf '%s\n**Release version: `%s`** (%s bump from `%s`)\n\nAdd `release:major` or `release:minor` to change the bump; no label means patch.\n' \
+            "$marker" "$NEXT" "$BUMP" "$LAST")
+
+          # Update our earlier comment if there is one, so the PR only ever has one.
+          id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -n1)
+
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -f body="$body" >/dev/null
+          else
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -f body="$body" >/dev/null
+          fi
