@@ -2,6 +2,8 @@
 
 Adds a copy button to the note tab header that copies the current file's absolute path in one click. Also registers a command, so you can bind a hotkey to it.
 
+![Copy path button in the note tab header, showing its "Copy path" tooltip](screenshot.png)
+
 ## Usage
 
 Click the copy icon in the tab header of any note, or run **Copy path of current file** from the command palette (Settings → Hotkeys to bind a key).
