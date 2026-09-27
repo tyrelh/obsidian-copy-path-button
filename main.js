@@ -1,11 +1,12 @@
-const { Plugin, PluginSettingTab, Setting, Notice, FileSystemAdapter } = require("obsidian");
+const { Plugin, PluginSettingTab, Setting, Notice, FileSystemAdapter, MarkdownView } = require("obsidian");
 
 const BTN_CLASS = "copy-path-button-action";
 const DEFAULT_SETTINGS = { template: "{{path}}" };
 
-function render(template, path, basename) {
+function render(template, path, relative, basename) {
 	return template
 		.replaceAll("{{path}}", path)
+		.replaceAll("{{relative}}", relative)
 		.replaceAll("{{wikilink}}", "[[" + basename + "]]");
 }
 
@@ -41,6 +42,8 @@ module.exports = class CopyPathButton extends Plugin {
 	addButtons() {
 		for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
 			const view = leaf.view;
+			// Unopened tabs hold a deferred view stub with no addAction; a later layout-change catches them.
+			if (!(view instanceof MarkdownView)) continue;
 			if (view.containerEl.querySelector("." + BTN_CLASS)) continue;
 			const btn = view.addAction("copy", "Copy path", () => {
 				if (view.file) this.copy(view.file);
@@ -56,7 +59,7 @@ module.exports = class CopyPathButton extends Plugin {
 			return;
 		}
 		const path = adapter.getFullPath(file.path);
-		const text = render(this.settings.template, path, file.basename);
+		const text = render(this.settings.template, path, file.path, file.basename);
 		await navigator.clipboard.writeText(text);
 		new Notice("Copied: " + text);
 	}
@@ -74,7 +77,7 @@ class CopyPathButtonSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName("Copy template")
 			.setDesc(
-				"What gets copied. Tokens: {{path}} = absolute path, {{wikilink}} = [[note name]]. Any other characters are copied literally, e.g. <{{path}}>"
+				"What gets copied. Tokens: {{path}} = absolute path, {{relative}} = path relative to vault root, {{wikilink}} = [[note name]]. Any other characters are copied literally, e.g. <{{path}}>"
 			)
 			.addText((text) =>
 				text
