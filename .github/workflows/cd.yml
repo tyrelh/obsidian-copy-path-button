@@ -37,10 +37,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Latest semver tag, or v0.0.0 for the very first release.
-          last=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
-          last=${last:-v0.0.0}
-          IFS=. read -r major minor patch <<<"${last#v}"
+          # Latest semver tag, or 0.0.0 for the very first release.
+          last=$(git tag --list '[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          last=${last:-0.0.0}
+          IFS=. read -r major minor patch <<<"$last"
 
           # The PR this commit landed from decides which number moves.
           labels=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
@@ -54,13 +54,13 @@ jobs:
             patch=$((patch + 1))
           fi
 
-          echo "tag=v${major}.${minor}.${patch}" >>"$GITHUB_OUTPUT"
+          echo "tag=${major}.${minor}.${patch}" >>"$GITHUB_OUTPUT"
 
       - name: Verify manifest version matches tag
         env:
-          TAG: ${{ steps.resolve.outputs.tag }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          VERSION="${TAG#v}"
+          VERSION="$TAG"
           MANIFEST_VERSION=$(jq -r '.version' manifest.json)
           if [ "$VERSION" != "$MANIFEST_VERSION" ]; then
             echo "Tag version $VERSION does not match manifest version $MANIFEST_VERSION"
